@@ -13,20 +13,25 @@ export interface AppSettings {
 	value: string;
 }
 
-const db = new Dexie('KidsPostDB') as Dexie & {
+type KidsPostDB = Dexie & {
 	newspapers: EntityTable<SavedNewspaper, 'id'>;
 	settings: EntityTable<AppSettings, 'key'>;
 };
 
-// Schema declaration
-db.version(1).stores({
-	newspapers: 'id, timestamp, gradeLevel' // Primary key and indexed props
-});
+let _db: KidsPostDB | null = null;
 
-// Bump version to add settings table
-db.version(2).stores({
-	newspapers: 'id, timestamp, gradeLevel', // Primary key and indexed props
-	settings: 'key' // Key-value store for app settings
-});
+export function getDb(): KidsPostDB {
+	if (!_db) {
+		_db = new Dexie('KidsPostDB') as KidsPostDB;
 
-export { db };
+		_db.version(1).stores({
+			newspapers: 'id, timestamp, gradeLevel'
+		});
+
+		_db.version(2).stores({
+			newspapers: 'id, timestamp, gradeLevel',
+			settings: 'key'
+		});
+	}
+	return _db;
+}

@@ -64,6 +64,10 @@
 					<img
 						src={article.images[0].url}
 						alt={article.images[0].alt}
+						loading="lazy"
+						decoding="async"
+						width="600"
+						height="400"
 						class="mb-3 w-full rounded-lg object-cover {article.featured ? 'max-h-64' : 'max-h-48'}"
 					/>
 				{/if}
@@ -81,8 +85,26 @@
 
 <!-- Print View: Fixed 2-page layout -->
 <div class="print-view page flex flex-col overflow-hidden bg-amber-50 p-6 shadow-xl">
-	{#if showHeader || showHeaderOnPrint}
+	{#if showHeader}
 		<header class="mb-3 border-b-4 border-double border-gray-800 pb-2 text-center">
+			<h1 class="font-headline text-4xl tracking-wide text-gray-900">
+				{title}
+			</h1>
+			<p class="font-body text-sm text-gray-600 italic">
+				{subtitle}
+			</p>
+			{#if dateRange}
+				<div class="flex items-center justify-center gap-2 text-xs text-gray-500">
+					<span>★</span>
+					<span>{dateRange}</span>
+					<span>★</span>
+				</div>
+			{/if}
+		</header>
+	{/if}
+
+	{#if showHeaderOnPrint}
+		<header class="print-only-header mb-3 border-b-4 border-double border-gray-800 pb-2 text-center">
 			<h1 class="font-headline text-4xl tracking-wide text-gray-900">
 				{title}
 			</h1>
@@ -113,10 +135,14 @@
 						<img
 							src={pos1.images[0].url}
 							alt={pos1.images[0].alt}
+							loading="lazy"
+							decoding="async"
+							width="600"
+							height="400"
 							class="img-small mb-2 w-full rounded object-cover"
 						/>
 					{/if}
-					<p class="line-clamp-5 font-body text-sm leading-snug text-gray-700">
+					<p class="article-text font-body text-sm leading-snug text-gray-700">
 						{pos1.bodyText}
 					</p>
 				</article>
@@ -135,10 +161,14 @@
 						<img
 							src={pos2.images[0].url}
 							alt={pos2.images[0].alt}
+							loading="lazy"
+							decoding="async"
+							width="600"
+							height="400"
 							class="img-featured mb-2 w-full rounded object-cover"
 						/>
 					{/if}
-					<p class="font-body text-lg leading-snug text-gray-700">
+					<p class="article-text font-body text-lg leading-snug text-gray-700">
 						{pos2.bodyText}
 					</p>
 				</article>
@@ -157,10 +187,14 @@
 						<img
 							src={pos3.images[0].url}
 							alt={pos3.images[0].alt}
+							loading="lazy"
+							decoding="async"
+							width="600"
+							height="400"
 							class="img-small mb-2 w-full rounded object-cover"
 						/>
 					{/if}
-					<p class="line-clamp-5 font-body text-sm leading-snug text-gray-700">
+					<p class="article-text font-body text-sm leading-snug text-gray-700">
 						{pos3.bodyText}
 					</p>
 				</article>
@@ -179,10 +213,14 @@
 						<img
 							src={pos4.images[0].url}
 							alt={pos4.images[0].alt}
+							loading="lazy"
+							decoding="async"
+							width="600"
+							height="400"
 							class="img-small mb-2 w-full rounded object-cover"
 						/>
 					{/if}
-					<p class="line-clamp-5 font-body text-sm leading-snug text-gray-700">
+					<p class="article-text font-body text-sm leading-snug text-gray-700">
 						{pos4.bodyText}
 					</p>
 				</article>
@@ -201,10 +239,14 @@
 						<img
 							src={pos5.images[0].url}
 							alt={pos5.images[0].alt}
+							loading="lazy"
+							decoding="async"
+							width="600"
+							height="400"
 							class="img-small mb-2 w-full rounded object-cover"
 						/>
 					{/if}
-					<p class="line-clamp-5 font-body text-sm leading-snug text-gray-700">
+					<p class="article-text font-body text-sm leading-snug text-gray-700">
 						{pos5.bodyText}
 					</p>
 				</article>
@@ -227,6 +269,8 @@
 	}
 
 	.mobile-card {
+		-webkit-tap-highlight-color: transparent;
+		touch-action: manipulation;
 		transition:
 			transform 0.2s ease,
 			box-shadow 0.2s ease;
@@ -242,6 +286,11 @@
 
 	/* Print view - hide by default, show on larger screens and print */
 	.print-view {
+		display: none;
+	}
+
+	/* Page 2 print-only header: hidden on screen */
+	.print-only-header {
 		display: none;
 	}
 
@@ -265,6 +314,10 @@
 		.print-view {
 			display: flex !important;
 		}
+
+		.print-only-header {
+			display: block !important;
+		}
 	}
 
 	/* Print grid layout */
@@ -272,7 +325,8 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		grid-template-rows: 1fr 1fr 1fr;
-		gap: 0.75rem;
+		gap: 0.5rem;
+		overflow: hidden;
 		grid-template-areas:
 			'pos1 pos2'
 			'pos3 pos2'
@@ -282,38 +336,45 @@
 	.grid-pos-1 {
 		grid-area: pos1;
 		min-height: 0;
+		overflow: hidden;
 	}
 	.grid-pos-2 {
 		grid-area: pos2;
 		min-height: 0;
+		overflow: hidden;
 	}
 	.grid-pos-3 {
 		grid-area: pos3;
 		min-height: 0;
+		overflow: hidden;
 	}
 	.grid-pos-4 {
 		grid-area: pos4;
 		min-height: 0;
+		overflow: hidden;
 	}
 	.grid-pos-5 {
 		grid-area: pos5;
 		min-height: 0;
+		overflow: hidden;
 	}
 
-	/* Image constraints for print */
+	/* Image constraints for print - percentage based */
 	.img-small {
-		max-height: 130px;
+		max-height: 35%;
+		flex-shrink: 1;
+		min-height: 0;
 	}
 	.img-featured {
-		max-height: 200px;
+		max-height: 40%;
+		flex-shrink: 1;
+		min-height: 0;
 	}
 
-	/* Line clamp */
-	.line-clamp-5 {
-		display: -webkit-box;
-		-webkit-line-clamp: 5;
-		line-clamp: 5;
-		-webkit-box-orient: vertical;
+	/* Flexible text truncation - let flexbox handle overflow */
+	.article-text {
+		flex: 1;
+		min-height: 0;
 		overflow: hidden;
 	}
 </style>
