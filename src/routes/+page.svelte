@@ -699,9 +699,19 @@
 	/* Print styles */
 	@media print {
 		.newspaper-display {
-			padding: 0;
-			gap: 0;
-			background: none;
+			display: block !important;
+			width: 100% !important;
+			height: auto !important;
+			padding: 0 !important;
+			margin: 0 !important;
+			gap: 0 !important;
+			background: none !important;
+			overflow: visible !important;
+		}
+
+		.sticky-bar,
+		.sample-banner {
+			display: none !important;
 		}
 	}
 </style>

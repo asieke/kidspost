@@ -10,7 +10,14 @@
 		dateRange?: string;
 	}
 
-	let { articles, showHeader = false, showHeaderOnPrint = false, title = '', subtitle = '', dateRange = '' }: Props = $props();
+	let {
+		articles,
+		showHeader = false,
+		showHeaderOnPrint = false,
+		title = '',
+		subtitle = '',
+		dateRange = ''
+	}: Props = $props();
 
 	// Get article by position (1-5)
 	function getArticle(position: number): Article | undefined {
@@ -104,7 +111,9 @@
 	{/if}
 
 	{#if showHeaderOnPrint}
-		<header class="print-only-header mb-3 border-b-4 border-double border-gray-800 pb-2 text-center">
+		<header
+			class="print-only-header mb-3 border-b-4 border-double border-gray-800 pb-2 text-center"
+		>
 			<h1 class="font-headline text-4xl tracking-wide text-gray-900">
 				{title}
 			</h1>
@@ -302,6 +311,8 @@
 
 		.print-view {
 			display: flex;
+			width: 816px;
+			height: 1056px;
 		}
 	}
 
@@ -313,6 +324,12 @@
 
 		.print-view {
 			display: flex !important;
+			width: 816px !important;
+			height: 1056px !important;
+			margin: 0 !important;
+			padding: 1.5rem !important; /* Ensure p-6 is maintained/enforced */
+			border: none !important; /* Remove any borders that might add width */
+			box-shadow: none !important;
 		}
 
 		.print-only-header {
@@ -361,12 +378,12 @@
 
 	/* Image constraints for print - percentage based */
 	.img-small {
-		max-height: 35%;
+		max-height: 50%;
 		flex-shrink: 1;
 		min-height: 0;
 	}
 	.img-featured {
-		max-height: 40%;
+		max-height: 50%;
 		flex-shrink: 1;
 		min-height: 0;
 	}
