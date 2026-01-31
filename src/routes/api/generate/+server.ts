@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import type { NewspaperData, Article } from '$lib/types';
 
 const gradeToReadingLevel: Record<string, string> = {
@@ -86,34 +86,33 @@ ${newsText}
 
 Rewrite these stories for a ${readingLevel} reading level. Use short sentences and simple words. Keep real names of people and places. Be factually accurate but engaging. Help kids understand why the news matters.
 
-Return ONLY valid JSON (no markdown, no code fences, no extra text). Your response must start with { and end with }.
-
-Return exactly 10 articles: 2 featured articles (the most exciting stories, with 80-100 word bodyText) and 8 regular articles (45-55 word bodyText). Put the 2 featured articles first in the array, then the 8 regular articles.
-
-Each article must have:
-- "id": short kebab-case slug
-- "headline": 3-8 words, fun and punchy, ending with ! or ?
-- "bodyText": the article text
-- "featured": true for the 2 featured articles, false for the rest
-- "imageAlt": short description of what illustration would fit this article
-
-JSON format:
-{
-  "title": "THE KIDS' WEEKLY NEWS",
-  "subtitle": "Your weekly source for fun and fascinating stories!",
-  "articles": [
-    {
-      "id": "example-slug",
-      "headline": "Short Fun Headline!",
-      "bodyText": "Simple sentences here...",
-      "featured": true,
-      "imageAlt": "A rocket launching into space"
-    }
-  ]
-}`;
+Return exactly 10 articles: 2 featured articles (the most exciting stories, with 80-100 word bodyText) and 8 regular articles (45-55 word bodyText). Put the 2 featured articles first in the array, then the 8 regular articles.`;
 
 		console.log('[generate] Step 1b: Formatting news as kid-friendly JSON...');
 		const formatStartTime = Date.now();
+
+		const newspaperSchema = {
+			type: Type.OBJECT,
+			properties: {
+				title: { type: Type.STRING },
+				subtitle: { type: Type.STRING },
+				articles: {
+					type: Type.ARRAY,
+					items: {
+						type: Type.OBJECT,
+						properties: {
+							id: { type: Type.STRING },
+							headline: { type: Type.STRING },
+							bodyText: { type: Type.STRING },
+							featured: { type: Type.BOOLEAN },
+							imageAlt: { type: Type.STRING }
+						},
+						required: ['id', 'headline', 'bodyText', 'featured', 'imageAlt']
+					}
+				}
+			},
+			required: ['title', 'subtitle', 'articles']
+		};
 
 		const formatResult = await genAI.models.generateContent({
 			model: 'gemini-3-flash-preview',
@@ -121,30 +120,22 @@ JSON format:
 			config: {
 				temperature: 0.7,
 				maxOutputTokens: 8192,
+				responseMimeType: 'application/json',
+				responseSchema: newspaperSchema
 			}
 		});
 
 		const formatDuration = Date.now() - formatStartTime;
 		console.log(`[generate] Formatting completed in ${formatDuration}ms`);
 
-		let text = formatResult.text ?? '';
-		console.log('[generate] Raw response length:', text.length);
-
-		// Clean up response — strip markdown fences if present
-		text = text.trim();
-		if (text.startsWith('```json')) {
-			text = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-		} else if (text.startsWith('```')) {
-			text = text.replace(/^```\s*/, '').replace(/\s*```$/, '');
-		}
-
 		let rawData: { title: string; subtitle: string; articles: Array<{ id: string; headline: string; bodyText: string; featured?: boolean; imageAlt?: string }> };
 		try {
+			const text = formatResult.text ?? '{}';
+			console.log('[generate] Raw response length:', text.length);
 			rawData = JSON.parse(text);
 			console.log('[generate] JSON parsed successfully, articles:', rawData.articles?.length);
 		} catch (parseErr) {
 			console.error('[generate] JSON parse failed:', parseErr);
-			console.error('[generate] Text that failed to parse:', text.substring(0, 500));
 			return json({ error: 'Failed to parse Gemini response as JSON' }, { status: 500 });
 		}
 
